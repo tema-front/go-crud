@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -8,7 +9,13 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	"github.com/tema-front/go-aggregator/internal/database"
 )
+
+type apiConfig struct {
+	DB *database.Queries
+}
 
 func main() {
 	godotenv.Load(".env")
@@ -16,6 +23,33 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("PORT is not found in environment")
+	} else {
+		log.Println("PORT has been successfully found")
+	}
+
+	// Подключение базы данных
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("DB_URL is not found in environment")
+	} else {
+		log.Println("dbURL has been successfully found")
+	}
+
+	conn, connErr := sql.Open("postgres", dbURL)
+	if connErr != nil {
+		log.Fatal("Can't connect to database", connErr)
+	} else {
+		log.Println("database has been successfully connected")
+	}
+
+	if err := conn.Ping(); err != nil {
+    log.Fatal("Can't ping the database", err)
+	} else {
+			log.Println("database has been successfully pinged")
+	}
+
+	apiCfg := apiConfig{
+		DB: database.New(conn),
 	}
 
 	router := chi.NewRouter()
@@ -32,8 +66,8 @@ func main() {
 	v1Router := chi.NewRouter()
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/err", handlerError)
+	v1Router.Post("/add", apiCfg.handlerCreateUser)
 
-	// монтирование роутера
 	router.Mount("/v1", v1Router)
 
 	srv := &http.Server{
