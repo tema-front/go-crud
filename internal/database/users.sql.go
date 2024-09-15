@@ -83,6 +83,36 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const editUser = `-- name: EditUser :one
+UPDATE
+  users
+SET
+  name = $1,
+  updated_at = $2
+WHERE
+  id = $3
+RETURNING id, created_at, updated_at, name, api_key
+`
+
+type EditUserParams struct {
+	Name      string
+	UpdatedAt time.Time
+	ID        uuid.UUID
+}
+
+func (q *Queries) EditUser(ctx context.Context, arg EditUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, editUser, arg.Name, arg.UpdatedAt, arg.ID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.ApiKey,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT
   id, created_at, updated_at, name, api_key

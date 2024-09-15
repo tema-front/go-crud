@@ -11,6 +11,16 @@ FROM
 WHERE
  api_key = $1;
 
+-- name: EditUser :one
+UPDATE
+  users
+SET
+  name = $1,
+  updated_at = $2
+WHERE
+  id = $3
+RETURNING *;
+
 -- name: GetUsers :many
 SELECT
   id, 

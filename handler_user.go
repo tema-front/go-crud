@@ -100,6 +100,45 @@ func (apiCfg apiConfig) handlerClearUsers(w http.ResponseWriter, r *http.Request
 	respondWithJSON(w, 200, struct{}{})
 }
 
+func (apiCfg apiConfig) handlerEditUser(w http.ResponseWriter, r *http.Request, user database.User) {
+	type parameters struct {
+		Id string `json:"id"`;
+		Name string `json:"name"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err := decoder.Decode(&params)
+	
+	if params.Id == "" {
+		respondWithError(w, 400, "Id is required")
+		return
+	}
+
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		return
+	}
+
+	userId, err := uuid.Parse(params.Id)
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Invalid ID format: %v", err))
+		return
+	}
+
+	updatedUser, err := apiCfg.DB.EditUser(r.Context(), database.EditUserParams{
+		ID: userId,
+		UpdatedAt: time.Now().UTC(),
+		Name: params.Name,
+	})
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't edit user: %v", err))
+		return
+	}
+
+	respondWithJSON(w, 200, updatedUser)
+}	
+
 func (apiCfg apiConfig) handlerDeleteUser(w http.ResponseWriter, r *http.Request, user database.User) {
 	type parameters struct {
 		Id string `json:"id"`;
