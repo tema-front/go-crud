@@ -62,3 +62,19 @@ func (apiCfg apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request) {
 
 	respondWithJSON(w, 200, databaseUserToUser(user))
 }	
+
+func (apiCfg apiConfig) handlerGetUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := apiCfg.DB.GetUsers(r.Context())
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't get users: %v", err))
+		return
+	}
+
+	parsedUsers := make([]User, len(users))
+
+	for _, v := range users {
+		parsedUsers = append(parsedUsers, databaseUserToUser(v))
+	}
+
+	respondWithJSON(w, 200, parsedUsers)
+}	
