@@ -66,10 +66,12 @@ func main() {
 	v1Router := chi.NewRouter()
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/err", handlerError)
-	v1Router.Post("/create", apiCfg.handlerCreateUser)
 	v1Router.Get("/get", apiCfg.handlerGetUser)
+	v1Router.Post("/create", apiCfg.handlerCreateUser)
 	v1Router.Get("/list", apiCfg.handlerGetUsers)
-	v1Router.Delete("/clear", apiCfg.handlerClearUsers)
+	v1Router.Delete("/delete", apiCfg.middlewareAuth(apiCfg.handlerDeleteUser))
+	v1Router.Delete("/clear", apiCfg.middlewareAuth(apiCfg.handlerClearUsers))
+	// TODO v1Router.Put("/edit", apiCfg.handlerEditUsers)
 
 	router.Mount("/v1", v1Router)
 
