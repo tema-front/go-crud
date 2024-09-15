@@ -20,13 +20,13 @@ func (apiCfg apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request
 	params := parameters{}
 	err := decoder.Decode(&params)
 
-	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+	if params.Name == "" {
+		respondWithError(w, 400, "Name is required")
 		return
 	}
 
-	if params.Name == "" {
-		respondWithError(w, 400, "Name is required")
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
 		return
 	}
 
@@ -54,6 +54,11 @@ func (apiCfg apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
 	err := decoder.Decode(&params)
+
+	if params.Id == "" {
+		respondWithError(w, 400, "Id is required")
+		return
+	}
 
 	if err != nil {
 		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
@@ -103,6 +108,12 @@ func (apiCfg apiConfig) handlerDeleteUser(w http.ResponseWriter, r *http.Request
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
 	err := decoder.Decode(&params)
+	
+	if params.Id == "" {
+		respondWithError(w, 400, "Id is required")
+		return
+	}
+
 	if err != nil {
 		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
 		return
