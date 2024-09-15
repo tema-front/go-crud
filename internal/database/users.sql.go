@@ -12,6 +12,28 @@ import (
 	"github.com/google/uuid"
 )
 
+const authByToken = `-- name: AuthByToken :one
+SELECT
+  id, created_at, updated_at, name, api_key
+FROM 
+ users
+WHERE
+ api_key = $1
+`
+
+func (q *Queries) AuthByToken(ctx context.Context, apiKey string) (User, error) {
+	row := q.db.QueryRowContext(ctx, authByToken, apiKey)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.ApiKey,
+	)
+	return i, err
+}
+
 const clearUsers = `-- name: ClearUsers :exec
 DELETE FROM users
 `
@@ -67,11 +89,11 @@ SELECT
 FROM 
  users
 WHERE
- api_key = $1
+ id = $1
 `
 
-func (q *Queries) GetUser(ctx context.Context, apiKey string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUser, apiKey)
+func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUser, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -84,24 +106,36 @@ func (q *Queries) GetUser(ctx context.Context, apiKey string) (User, error) {
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, created_at, updated_at, name, api_key FROM users
+SELECT
+  id, 
+  name,
+  created_at,
+  updated_at
+FROM 
+  users
 `
 
-func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
+type GetUsersRow struct {
+	ID        uuid.UUID
+	Name      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (q *Queries) GetUsers(ctx context.Context) ([]GetUsersRow, error) {
 	rows, err := q.db.QueryContext(ctx, getUsers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	var items []GetUsersRow
 	for rows.Next() {
-		var i User
+		var i GetUsersRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Name,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.Name,
-			&i.ApiKey,
 		); err != nil {
 			return nil, err
 		}
