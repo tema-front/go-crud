@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/tema-front/go-aggregator/internal/auth"
-	"github.com/tema-front/go-aggregator/internal/database"
+	"github.com/tema-front/go-crud/internal/auth"
+	"github.com/tema-front/go-crud/internal/database"
 )
 
 type authedhandler func(w http.ResponseWriter, r *http.Request, user database.User)

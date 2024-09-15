@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/tema-front/go-aggregator/internal/database"
+	"github.com/tema-front/go-crud/internal/database"
 )
 
 type apiConfig struct {

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/tema-front/go-aggregator/internal/database"
+	"github.com/tema-front/go-crud/internal/database"
 )
 
 func (apiCfg apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {

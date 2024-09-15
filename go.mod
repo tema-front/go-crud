@@ -1,4 +1,4 @@
-module github.com/tema-front/go-aggregator
+module github.com/tema-front/go-crud
 
 go 1.22.3
 

@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/tema-front/go-aggregator/internal/database"
+	"github.com/tema-front/go-crud/internal/database"
 )
 
 type UsersRow struct {
