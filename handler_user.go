@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/tema-front/go-aggregator/internal/auth"
 	"github.com/tema-front/go-aggregator/internal/database"
 )
 
@@ -48,13 +47,26 @@ func (apiCfg apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request
 }
 
 func (apiCfg apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request) {
-	apiKey, err := auth.GetApiKey(r.Header)
+	type parameters struct {
+		Id string `json:"id"`;
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err := decoder.Decode(&params)
+
 	if err != nil {
-		respondWithError(w, 403, fmt.Sprintf("Couldn't create user: %v", err))
+		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
 		return
 	}
 
-	user, err := apiCfg.DB.GetUser(r.Context(), apiKey)
+	userId, err := uuid.Parse(params.Id)
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Invalid ID format: %v", err))
+		return
+	}
+
+	user, err := apiCfg.DB.GetUser(r.Context(), userId)
 	if err != nil {
 		respondWithError(w, 400, fmt.Sprintf("Couldn't get user: %v", err))
 		return
@@ -70,21 +82,43 @@ func (apiCfg apiConfig) handlerGetUsers(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	parsedUsers := make([]User, len(users))
-
-	for _, v := range users {
-		parsedUsers = append(parsedUsers, databaseUserToUser(v))
-	}
-
-	respondWithJSON(w, 200, parsedUsers)
+	respondWithJSON(w, 200, databaseUsersToUsers(users))
 }	
 
-func (apiCfg apiConfig) handlerClearUsers(w http.ResponseWriter, r *http.Request) {
+func (apiCfg apiConfig) handlerClearUsers(w http.ResponseWriter, r *http.Request, _ database.User) {
 	err := apiCfg.DB.ClearUsers(r.Context())
 	if err != nil {
 		respondWithError(w, 400, fmt.Sprintf("Couldn't clear users: %v", err))
 		return
 	}
-
+	
 	respondWithJSON(w, 200, struct{}{})
 }
+
+func (apiCfg apiConfig) handlerDeleteUser(w http.ResponseWriter, r *http.Request, user database.User) {
+	type parameters struct {
+		Id string `json:"id"`;
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err := decoder.Decode(&params)
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		return
+	}
+
+	userId, err := uuid.Parse(params.Id)
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Invalid ID format: %v", err))
+		return
+	}
+
+	err = apiCfg.DB.DeleteUser(r.Context(), userId)
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't delete user: %v", err))
+		return
+	}
+
+	respondWithJSON(w, 200, struct{}{})
+}	
