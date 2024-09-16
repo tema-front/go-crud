@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/tema-front/go-crud/internal/database"
 )
@@ -47,31 +48,19 @@ func (apiCfg apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request
 }
 
 func (apiCfg apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		Id string `json:"id"`;
-	}
-
-	decoder := json.NewDecoder(r.Body)
-	params := parameters{}
-	err := decoder.Decode(&params)
-
-	if params.Id == "" {
-		respondWithError(w, 400, "Id is required")
-		return
-	}
-
+	userIDStr := chi.URLParam(r, "userID")
+	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		respondWithError(w, 400, fmt.Sprintf("Couldn't parse userID: %v", err))
 		return
 	}
 
-	userId, err := uuid.Parse(params.Id)
-	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Invalid ID format: %v", err))
+	if userID == (uuid.UUID{}) {
+		respondWithError(w, 400, "userID is required")
 		return
 	}
 
-	user, err := apiCfg.DB.GetUser(r.Context(), userId)
+	user, err := apiCfg.DB.GetUser(r.Context(), userID)
 	if err != nil {
 		respondWithError(w, 400, fmt.Sprintf("Couldn't get user: %v", err))
 		return
@@ -102,32 +91,33 @@ func (apiCfg apiConfig) handlerClearUsers(w http.ResponseWriter, r *http.Request
 
 func (apiCfg apiConfig) handlerEditUser(w http.ResponseWriter, r *http.Request, user database.User) {
 	type parameters struct {
-		Id string `json:"id"`;
 		Name string `json:"name"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
 	err := decoder.Decode(&params)
-	
-	if params.Id == "" {
-		respondWithError(w, 400, "Id is required")
-		return
-	}
 
 	if err != nil {
 		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
 		return
 	}
 
-	userId, err := uuid.Parse(params.Id)
+	userIDStr := chi.URLParam(r, "userID")
+	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Invalid ID format: %v", err))
+		respondWithError(w, 400, fmt.Sprintf("Couldn't parse userID: %v", err))
 		return
 	}
 
+	if userID == (uuid.UUID{}) {
+		respondWithError(w, 400, "userID is required")
+		return
+	}
+
+
 	updatedUser, err := apiCfg.DB.EditUser(r.Context(), database.EditUserParams{
-		ID: userId,
+		ID: userID,
 		UpdatedAt: time.Now().UTC(),
 		Name: params.Name,
 	})
@@ -140,31 +130,19 @@ func (apiCfg apiConfig) handlerEditUser(w http.ResponseWriter, r *http.Request, 
 }	
 
 func (apiCfg apiConfig) handlerDeleteUser(w http.ResponseWriter, r *http.Request, user database.User) {
-	type parameters struct {
-		Id string `json:"id"`;
-	}
-
-	decoder := json.NewDecoder(r.Body)
-	params := parameters{}
-	err := decoder.Decode(&params)
-	
-	if params.Id == "" {
-		respondWithError(w, 400, "Id is required")
-		return
-	}
-
+	userIDStr := chi.URLParam(r, "userID")
+	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		respondWithError(w, 400, fmt.Sprintf("Couldn't parse userID: %v", err))
 		return
 	}
 
-	userId, err := uuid.Parse(params.Id)
-	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Invalid ID format: %v", err))
+	if userID == (uuid.UUID{}) {
+		respondWithError(w, 400, "userID is required")
 		return
 	}
 
-	err = apiCfg.DB.DeleteUser(r.Context(), userId)
+	err = apiCfg.DB.DeleteUser(r.Context(), userID)
 	if err != nil {
 		respondWithError(w, 400, fmt.Sprintf("Couldn't delete user: %v", err))
 		return

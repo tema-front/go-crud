@@ -27,7 +27,6 @@ func main() {
 		log.Println("PORT has been successfully found")
 	}
 
-	// Подключение базы данных
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
 		log.Fatal("DB_URL is not found in environment")
@@ -66,12 +65,12 @@ func main() {
 	v1Router := chi.NewRouter()
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/err", handlerError)
-	v1Router.Get("/get", apiCfg.handlerGetUser)
-	v1Router.Post("/create", apiCfg.handlerCreateUser)
-	v1Router.Get("/list", apiCfg.handlerGetUsers)
-	v1Router.Put("/edit", apiCfg.middlewareAuth(apiCfg.handlerEditUser))
-	v1Router.Delete("/delete", apiCfg.middlewareAuth(apiCfg.handlerDeleteUser))
-	v1Router.Delete("/clear", apiCfg.middlewareAuth(apiCfg.handlerClearUsers))
+	v1Router.Get("/user/list", apiCfg.handlerGetUsers)
+	v1Router.Post("/user/create", apiCfg.handlerCreateUser)
+	v1Router.Get("/user/{userID}/get", apiCfg.handlerGetUser)
+	v1Router.Put("/user/{userID}/edit", apiCfg.middlewareAuth(apiCfg.handlerEditUser))
+	v1Router.Delete("/user/{userID}/delete", apiCfg.middlewareAuth(apiCfg.handlerDeleteUser))
+	v1Router.Delete("/user/clear", apiCfg.middlewareAuth(apiCfg.handlerClearUsers))
 
 	router.Mount("/v1", v1Router)
 
