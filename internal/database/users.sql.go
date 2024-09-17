@@ -143,6 +143,8 @@ SELECT
   updated_at
 FROM 
   users
+WHERE 
+  $1::text IS NULL OR name ILIKE '%' || $1 || '%'
 `
 
 type GetUsersRow struct {
@@ -152,8 +154,8 @@ type GetUsersRow struct {
 	UpdatedAt time.Time
 }
 
-func (q *Queries) GetUsers(ctx context.Context) ([]GetUsersRow, error) {
-	rows, err := q.db.QueryContext(ctx, getUsers)
+func (q *Queries) GetUsers(ctx context.Context, dollar_1 string) ([]GetUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUsers, dollar_1)
 	if err != nil {
 		return nil, err
 	}

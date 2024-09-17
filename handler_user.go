@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -70,7 +71,10 @@ func (apiCfg apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request) {
 }	
 
 func (apiCfg apiConfig) handlerGetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := apiCfg.DB.GetUsers(r.Context())
+	search := r.URL.Query().Get("search")
+	search = strings.TrimSpace(search)
+
+	users, err := apiCfg.DB.GetUsers(r.Context(), search)
 	if err != nil {
 		respondWithError(w, 400, fmt.Sprintf("Couldn't get users: %v", err))
 		return
