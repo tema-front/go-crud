@@ -145,7 +145,18 @@ FROM
   users
 WHERE 
   $1::text IS NULL OR name ILIKE '%' || $1 || '%'
+ORDER BY 
+  CASE 
+    WHEN $2 = 'ASC' THEN name 
+    WHEN $2 = 'DESC' THEN name 
+    ELSE NULL 
+  END
 `
+
+type GetUsersParams struct {
+	Column1 string
+	Column2 interface{}
+}
 
 type GetUsersRow struct {
 	ID        uuid.UUID
@@ -154,8 +165,8 @@ type GetUsersRow struct {
 	UpdatedAt time.Time
 }
 
-func (q *Queries) GetUsers(ctx context.Context, dollar_1 string) ([]GetUsersRow, error) {
-	rows, err := q.db.QueryContext(ctx, getUsers, dollar_1)
+func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]GetUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUsers, arg.Column1, arg.Column2)
 	if err != nil {
 		return nil, err
 	}

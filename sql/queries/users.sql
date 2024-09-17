@@ -30,7 +30,13 @@ SELECT
 FROM 
   users
 WHERE 
-  $1::text IS NULL OR name ILIKE '%' || $1 || '%';
+  $1::text IS NULL OR name ILIKE '%' || $1 || '%'
+ORDER BY 
+  CASE 
+    WHEN $2 = 'ASC' THEN name 
+    WHEN $2 = 'DESC' THEN name 
+    ELSE NULL 
+  END;
 
 -- name: GetUser :one
 SELECT
