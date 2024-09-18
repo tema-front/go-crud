@@ -4,85 +4,45 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/go-chi/chi"
-	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/tema-front/go-crud/config"
+	"github.com/tema-front/go-crud/db"
+	"github.com/tema-front/go-crud/handlers"
 	"github.com/tema-front/go-crud/internal/database"
 )
 
-type apiConfig struct {
-	DB *database.Queries
-}
-
 func main() {
 	godotenv.Load(".env")
+	config := config.LoadConfig()
+	
+	conn := db.InitDB(config.DB_URL)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Fatal("PORT is not found in environment")
-	} else {
-		log.Println("PORT has been successfully found")
-	}
+	router := InitRouter(conn)
 
-	dbURL := os.Getenv("DB_URL")
-	if dbURL == "" {
-		log.Fatal("DB_URL is not found in environment")
-	} else {
-		log.Println("dbURL has been successfully found")
-	}
+	StartServer(router, config.PORT)
+}
 
-	conn, connErr := sql.Open("postgres", dbURL)
-	if connErr != nil {
-		log.Fatal("Can't connect to database", connErr)
-	} else {
-		log.Println("database has been successfully connected")
-	}
-
-	if err := conn.Ping(); err != nil {
-    log.Fatal("Can't ping the database", err)
-	} else {
-			log.Println("database has been successfully pinged")
-	}
-
-	apiCfg := apiConfig{
-		DB: database.New(conn),
-	}
+func InitRouter(conn *sql.DB) *chi.Mux {
+	apiCfg := database.New(conn)
 
 	router := chi.NewRouter()
+	router.Mount("/v1", handlers.NewRouter(apiCfg))
 
-	router.Use(cors.Handler(cors.Options{
-    AllowedOrigins: []string{"http://*", "https://*"},
-    AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
-		AllowedHeaders: []string{"*"},
-		ExposedHeaders: []string{"*"},
-    AllowCredentials: false,
-		MaxAge: 300,
-	}))
+	return router
+}
 
-	v1Router := chi.NewRouter()
-	v1Router.Get("/healthz", handlerReadiness)
-	v1Router.Get("/err", handlerError)
-	v1Router.Get("/user/list", apiCfg.handlerGetUsers)
-	v1Router.Post("/user/create", apiCfg.handlerCreateUser)
-	v1Router.Get("/user/{userID}/get", apiCfg.handlerGetUser)
-	v1Router.Put("/user/{userID}/edit", apiCfg.middlewareAuth(apiCfg.handlerEditUser))
-	v1Router.Delete("/user/{userID}/delete", apiCfg.middlewareAuth(apiCfg.handlerDeleteUser))
-	v1Router.Delete("/user/clear", apiCfg.middlewareAuth(apiCfg.handlerClearUsers))
-
-	router.Mount("/v1", v1Router)
-
+func StartServer(router *chi.Mux, port string) {
 	srv := &http.Server{
 		Handler: router,
-		Addr: ":" + port,
+		Addr:    ":" + port,
 	}
 
 	log.Printf("Server starting on port %v", port)
 
-	err := srv.ListenAndServe()
-	if err != nil {
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }

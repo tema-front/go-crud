@@ -23,10 +23,7 @@ RETURNING *;
 
 -- name: GetUsers :many
 SELECT
-  id, 
-  name,
-  created_at,
-  updated_at
+  *
 FROM 
   users
 WHERE 
@@ -34,7 +31,7 @@ WHERE
 ORDER BY 
   CASE 
     WHEN $2 = 'ASC' THEN name 
-    WHEN $2 = 'DESC' THEN name 
+    WHEN $2 = 'DESC' THEN name
     ELSE NULL 
   END;
 

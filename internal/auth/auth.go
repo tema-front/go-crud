@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-// Example
-// Auth: ApiKey {insert apikey here}
 func GetApiKey(headers http.Header) (string, error) {
 	value := headers.Get("Authorization")
 

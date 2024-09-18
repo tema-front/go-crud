@@ -137,10 +137,7 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 
 const getUsers = `-- name: GetUsers :many
 SELECT
-  id, 
-  name,
-  created_at,
-  updated_at
+  id, created_at, updated_at, name, api_key
 FROM 
   users
 WHERE 
@@ -148,7 +145,7 @@ WHERE
 ORDER BY 
   CASE 
     WHEN $2 = 'ASC' THEN name 
-    WHEN $2 = 'DESC' THEN name 
+    WHEN $2 = 'DESC' THEN name
     ELSE NULL 
   END
 `
@@ -158,27 +155,21 @@ type GetUsersParams struct {
 	Column2 interface{}
 }
 
-type GetUsersRow struct {
-	ID        uuid.UUID
-	Name      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
-func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]GetUsersRow, error) {
+func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, error) {
 	rows, err := q.db.QueryContext(ctx, getUsers, arg.Column1, arg.Column2)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetUsersRow
+	var items []User
 	for rows.Next() {
-		var i GetUsersRow
+		var i User
 		if err := rows.Scan(
 			&i.ID,
-			&i.Name,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Name,
+			&i.ApiKey,
 		); err != nil {
 			return nil, err
 		}
