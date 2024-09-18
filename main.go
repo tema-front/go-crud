@@ -14,16 +14,6 @@ import (
 	"github.com/tema-front/go-crud/internal/database"
 )
 
-func main() {
-	godotenv.Load(".env")
-	config := config.LoadConfig()
-	
-	conn := db.InitDB(config.DB_URL)
-
-	router := InitRouter(conn)
-
-	StartServer(router, config.PORT)
-}
 
 func InitRouter(conn *sql.DB) *chi.Mux {
 	apiCfg := database.New(conn)
@@ -45,4 +35,15 @@ func StartServer(router *chi.Mux, port string) {
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func main() {
+	godotenv.Load(".env")
+	config := config.LoadConfig()
+	
+	conn := db.InitDB(config.DB_URL)
+
+	router := InitRouter(conn)
+
+	StartServer(router, config.PORT)
 }
