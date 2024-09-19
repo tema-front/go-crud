@@ -144,8 +144,7 @@ WHERE
   $1::text IS NULL OR name ILIKE '%' || $1 || '%'
 ORDER BY 
   CASE 
-    WHEN $2 = 'ASC' THEN name 
-    WHEN $2 = 'DESC' THEN name
+    WHEN $2 = 'ASC' OR $2 = 'DESC' THEN name 
     ELSE NULL 
   END
 `
