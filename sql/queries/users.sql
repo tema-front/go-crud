@@ -32,7 +32,8 @@ ORDER BY
   CASE 
     WHEN $2 = 'ASC' OR $2 = 'DESC' THEN name 
     ELSE NULL 
-  END;
+  END
+LIMIT $3 OFFSET $4;
 
 -- name: GetUser :one
 SELECT

@@ -84,6 +84,8 @@ func (apiCfg ApiConfig) handlerGetUsers(w http.ResponseWriter, r *http.Request) 
 	search := r.URL.Query().Get("search")
 	search = strings.TrimSpace(search)
 
+	limit, offset := utils.ParsePageAndCount(w, r)
+
 	order := r.URL.Query().Get("order")
 	if order != "ASC" && order != "DESC" && order != "" {
 		utils.RespondWithError(w, 400, "Error in order param")
@@ -93,6 +95,8 @@ func (apiCfg ApiConfig) handlerGetUsers(w http.ResponseWriter, r *http.Request) 
 	users, err := apiCfg.DB.GetUsers(r.Context(), database.GetUsersParams{
 		Column1: search,
 		Column2: order,
+		Limit: int32(limit),
+		Offset: int32(offset),
 	})
 	if err != nil {
 		utils.RespondWithError(w, 400, fmt.Sprintf("Couldn't get users: %v", err))

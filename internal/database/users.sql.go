@@ -147,15 +147,23 @@ ORDER BY
     WHEN $2 = 'ASC' OR $2 = 'DESC' THEN name 
     ELSE NULL 
   END
+LIMIT $3 OFFSET $4
 `
 
 type GetUsersParams struct {
 	Column1 string
 	Column2 interface{}
+	Limit   int32
+	Offset  int32
 }
 
 func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, getUsers, arg.Column1, arg.Column2)
+	rows, err := q.db.QueryContext(ctx, getUsers,
+		arg.Column1,
+		arg.Column2,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
