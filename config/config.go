@@ -1,12 +1,21 @@
 package config
 
 import (
+	"log"
+
+	"github.com/joho/godotenv"
 	"github.com/tema-front/go-crud/utils"
 )
 
 type Config struct {
 	PORT  string
 	DB_URL string
+}
+
+func LoadEnv() {
+	if err := godotenv.Load(); err != nil {
+			log.Fatal("Couldn't load .env file")
+	}
 }
 
 func LoadConfig() Config {

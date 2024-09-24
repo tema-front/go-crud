@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/tema-front/go-crud/config"
 	"github.com/tema-front/go-crud/db"
@@ -15,7 +14,7 @@ import (
 )
 
 
-func InitRouter(conn *sql.DB) *chi.Mux {
+func initRouter(conn *sql.DB) *chi.Mux {
 	apiCfg := database.New(conn)
 
 	router := chi.NewRouter()
@@ -24,26 +23,26 @@ func InitRouter(conn *sql.DB) *chi.Mux {
 	return router
 }
 
-func StartServer(router *chi.Mux, port string) {
+func startServer(router *chi.Mux, port string) {
 	srv := &http.Server{
 		Handler: router,
 		Addr:    ":" + port,
 	}
 
-	log.Printf("Server starting on port %v", port)
-
 	if err := srv.ListenAndServe(); err != nil {
-		log.Fatal(err)
+		log.Fatalf("Couldn't start server %v", err)
 	}
+
+	log.Printf("Server starting on port %v", port)
 }
 
 func main() {
-	godotenv.Load(".env")
+	config.LoadEnv()
 	config := config.LoadConfig()
 	
 	conn := db.InitDB(config.DB_URL)
 
-	router := InitRouter(conn)
+	router := initRouter(conn)
 
-	StartServer(router, config.PORT)
+	startServer(router, config.PORT)
 }
